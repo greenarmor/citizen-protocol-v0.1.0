@@ -1,4 +1,4 @@
-# CITIZEN Whitepaper
+# CITIZEN-Protocol Consensus Mechanism
 ## Governance-First Public Ledger with Deterministic Finality, Namespace Safety, and Builder Credit Grants
 
 **Version:** 0.2 (Research-Aligned Draft)
