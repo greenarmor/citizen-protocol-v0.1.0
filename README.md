@@ -7,6 +7,8 @@
 [![Rust](https://img.shields.io/badge/Rust-Workspace-000000?logo=rust)](./citizen-protocol/Cargo.toml)
 [![License: CPNCL](https://img.shields.io/badge/License-CPNCL%20v1.0-blue)](./LICENSE)
 
+> **Note:** The Rust source code for citizen-protocol v0.1.0 is temporarily kept in a private repository at [https://github.com/greenarmor/citizen.git](https://github.com/greenarmor/citizen.git) until the appropriate time to migrate it into this repository.
+
 ## Governance-First Public Ledger with Deterministic Finality, Namespace Safety, and Builder Credit Grants
 
 **Version:** 0.2 (Research-Aligned Draft)
