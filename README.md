@@ -1,7 +1,7 @@
 # CITIZEN-Protocol Consensus Mechanism
 
 [![Protocol](https://img.shields.io/badge/Protocol-CITIZEN-2d6cdf)](./citizen-protocol/README.md)
-[![Status](https://img.shields.io/badge/Status-Working%20Draft-orange)](./AGENTS.md)
+[![Status](https://img.shields.io/badge/Status-Working%20Draft-orange)](./README.md)
 [![Consensus](https://img.shields.io/badge/Consensus-BFT%20%E2%89%A580%25%20quorum-6f42c1)](./AGENTS.md)
 [![Finality](https://img.shields.io/badge/Finality-Deterministic%20~1s-success)](./AGENTS.md)
 [![Rust](https://img.shields.io/badge/Rust-Workspace-000000?logo=rust)](./citizen-protocol/Cargo.toml)
