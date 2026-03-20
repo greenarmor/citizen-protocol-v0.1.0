@@ -56,13 +56,16 @@ CITIZEN maximizes $$\mathcal{O}$$ subject to constraints:
 
 ## 2. System Model
 
-At block height $$h$$:
+At block height $$h$$ the governance-approved validator allowlist is $$A_h$$ with $$|A_h| = M_h$$. The runtime consensus set is derived deterministically from that allowlist:
 
-- Active validators: $$V_h\), \(|V_h| = N_h$$
-- Quorum threshold: $$Q_h = \lceil 0.8N_h \rceil$$
-- Byzantine bound: $$f_h \le \lfloor 0.19N_h \rfloor$$
+- Active validators: $$V_h \subseteq A_h$$ with $$|V_h| = N_h = \left\lceil \frac{M_h}{2} \right\rceil$$
+- Standby validators: $$S_h = A_h \setminus V_h$$ with $$|S_h| = M_h - N_h$$
+- Quorum threshold: $$Q_h = \left\lceil 0.8N_h \right\rceil$$
+- Byzantine bound on the active set: $$f_h \le \lfloor 0.19N_h \rfloor$$
 
-Each validator $$v_i \in V_h$$ has:
+This matches the rollout policy target of a 200% governance allowlist relative to active consensus seats: if the policy target is $$N_h$$ active seats, governance admits approximately $$M_h = 2N_h$$ total validator seats so that roughly half are active and half are standby at any given epoch.
+
+Each active validator $$v_i \in V_h$$ has:
 
 - a unique identity anchor,
 - a long-term public key $$pk_i$$,
@@ -93,7 +96,7 @@ where:
 Finalization criterion:
 
 $$
-\text{Finalize}(B_h) \iff \text{VerifyAgg}(\Pi_h) \land |\text{Signers}(\Pi_h)| \ge Q_h
+\text{Finalize}(B_h) \iff \text{VerifyAgg}(\Pi_h) \land \text{Signers}(\Pi_h) \subseteq V_h \land |\text{Signers}(\Pi_h)| \ge Q_h
 $$
 
 ---
@@ -110,13 +113,13 @@ If timeout occurs before quorum, round aborts and leader rotates; no state trans
 
 ### 3.1 Deterministic transition function
 
-Let global state at height $$h\) be \(S_h$$. Then:
+Let global state at height $$h$$ be $$S_h$$. Then:
 
 $$
 S_h = \Gamma(S_{h-1}, B_h)
 $$
 
-with $$\Gamma$$ deterministic. Therefore, for any two honest nodes \$$i,j$$:
+with $$\Gamma$$ deterministic. Therefore, for any two honest nodes $$i,j$$:
 
 $$
 \text{Prefix}_i(h) = \text{Prefix}_j(h) \Rightarrow S_h^{(i)} = S_h^{(j)}
@@ -150,7 +153,7 @@ Thus no cross-domain privilege escalation is implied by design.
 
 ## 5. Governance Mathematics
 
-Governance actions are entries in `governance.vote`.
+Governance actions are entries in `governance.vote`. Governance approves membership over the full allowlist $$A_h$$, while consensus and commit quorums are computed only over the active subset $$V_h$$.
 
 For proposal $$P$$ at height $$h$$:
 
@@ -161,7 +164,7 @@ $$
 Execution condition:
 
 $$
-\text{Execute}_h(P) \iff \text{Yes}_h(P) \ge Q_h
+\text{GovExecute}_h(P) \iff \text{Yes}_h(P) \ge Q_h
 $$
 
 ### 5.1 Validator admission
@@ -169,7 +172,13 @@ $$
 For candidate $$x$$:
 
 $$
-\mathrm{Execute}_h(\mathrm{ADD\_VALIDATOR}(x)) \Rightarrow V_{h+1} = V_h \cup \{x\}
+\mathrm{GovExecute}_h(\mathrm{ADD\_VALIDATOR}(x)) \Rightarrow A_{h+1} = A_h \cup \{x\}
+$$
+
+The next epoch active set is then recomputed deterministically from $$A_{h+1}$$:
+
+$$
+V_{h+1} \subseteq A_{h+1}, \qquad |V_{h+1}| = \left\lceil \frac{|A_{h+1}|}{2} \right\rceil
 $$
 
 
@@ -177,16 +186,16 @@ $$
 
 For validator $$y$$:
 
-$$\mathrm{Execute}_h(\mathrm{REMOVE\_VALIDATOR}(y))
-\Rightarrow
-V_{h+1} = V_h \setminus \{y\}$$
+$$
+\mathrm{GovExecute}_h(\mathrm{REMOVE\_VALIDATOR}(y)) \Rightarrow A_{h+1} = A_h \setminus \{y\}
+$$
 
 ### 5.3 Emergency governance
 
 Let $$E$$ be an emergency action set (pause, temporary quorum adjustment, suspension, forced upgrade). Then:
 
 $$
-\forall e \in E:\ \text{Execute}_h(e) \Rightarrow \text{Yes}_h(e) \ge Q_h \land \text{TimeBounded}(e)
+\forall e \in E:\ \text{GovExecute}_h(e) \Rightarrow \text{Yes}_h(e) \ge Q_h \land \text{TimeBounded}(e)
 $$
 
 This preserves auditability and prevents unilateral control.
@@ -270,15 +279,15 @@ Hence high-impact use consumes proportionally more credits while preserving dete
 
 ### 7.1 Safety theorem (no conflicting finalization)
 
-If at least 81% of validators are honest and non-equivocating, two conflicting blocks at the same height cannot both finalize.
+If at least 81% of active validators are honest and non-equivocating, two conflicting blocks at the same height cannot both finalize.
 
-**Proof sketch.** Suppose conflicting finalized blocks $$B$$ and $$B'$$ have commit signer sets $$C,C'$$ with $$|C|,|C'|\ge0.8N$$. Then:
+**Proof sketch.** Let $$N = |V_h|$$ be the active validator count for height $$h$$, with $$V_h$$ derived from the full allowlist $$A_h$$ by the deterministic split $$N = \left\lceil M/2 \right\rceil$$ where $$M = |A_h|$$. Suppose conflicting finalized blocks $$B$$ and $$B'$$ have commit signer sets $$C,C' \subseteq V_h$$ with $$|C|,|C'| \ge 0.8N$$. Then:
 
 $$
 |C\cap C'| \ge |C|+|C'|-N \ge 0.6N
 $$
 
-At least 60% would have signed both blocks. Since Byzantine share is $$\le 19\%$$, at least 41% honest validators would equivocate, contradiction.
+At least 60% of the active set would have signed both blocks. Since the Byzantine share on the active set is $$\le 19\%$$, at least $$0.6N - 0.19N = 0.41N$$ honest active validators would have equivocated, contradiction. Standby validators do not change this bound because they are excluded from $$V_h$$ and cannot contribute commit signatures until promoted into the next active set.
 
 ### 7.2 Liveness theorem
 
