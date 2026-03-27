@@ -326,6 +326,41 @@ Security properties:
 3. **Governance transparency:** all votes signed, public, and on-chain.
 4. **Data ownership:** commitments and consent proofs on-chain; sensitive data off-chain and user-controlled.
 
+### 9.1 Off-chain encrypted data commitment model
+
+For a governed off-chain ciphertext object $$C$$ and its canonical manifest metadata $$M$$:
+
+$$
+h_C = \mathrm{SHA256}(C)
+$$
+
+$$
+\pi_M = \mathrm{CanonCommit}(M)
+$$
+
+The ledger entry binds off-chain storage to on-chain verification context through
+the deterministic commitment tuple:
+
+$$
+\Phi = (\pi_M,\ h_C,\ r,\ \tau)
+$$
+
+where $$r$$ is a valid consent receipt reference and $$\tau$$ is namespace policy
+version metadata. Acceptance condition for off-chain encrypted writes is:
+
+$$
+\mathrm{AcceptOffchain}(e) \iff
+\mathrm{PolicyOK}_{\nu(e)}(e,\tau) \land
+\mathrm{ConsentValid}(r,\pi_M,t_h) \land
+\mathrm{HashMatch}(h_C, C) \land
+\mathrm{CommitMatch}(\pi_M, M)
+$$
+
+This formalizes the implementation path where encrypted bytes remain off-chain
+while deterministic commitments and consent-governance checks are enforced by
+the API + ledger validation boundary.
+
+
 Auditability function over history $$\mathcal{H}$$:
 
 $$
